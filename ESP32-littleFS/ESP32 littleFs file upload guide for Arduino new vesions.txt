@@ -1,0 +1,218 @@
+
+This is a simple guide explaining the step-by-step procedure to upload files into the ESP32 LittleFS system
+------------------------------------------------------------------------------------------------------------
+In older versions of the Arduino IDE, there was a .jar plugin available that allowed uploading files to LittleFS directly from the IDE. However, this plugin is not compatible with the newer versions of the Arduino IDE. Therefore, we need to find an alternative method.
+In this guide, I will show you how to upload files using the Command Prompt. The necessary tools are already available inside the ESP32 core folder — we just need to execute them manually via the command line.
+
+*************************************************************************************************************************************************************************************************************
+Tested and Succeeded on:
+
+    * Operating System: Ubuntu 22.04.5 LTS
+
+    * Arduino IDE Version: 2.3.6
+
+    * ESP32 Arduino Core Version( by Espressif): 3.2.1 
+*************************************************************************************************************************************************************************************************************
+
+Step 1: Prepare Your Arduino Sketch and Enable Verbose Output
+-------------------------------------------------------------
+    * Open Arduino IDE 2.3.6.
+
+    * Open File > Preferences.
+
+    * Check the box for "Show verbose output during: [X] compilation [X] upload". Click OK.
+    
+    * Create a new project using the given example code
+    
+    * Enable the debug and select full debug from the Arduino tool drop down menu
+    
+    * Enable serial monitor (@ correct baud rate) for seeing the debug messages
+    
+    * Choose correct board and COM port (My case: ESP32 DevKit V1 and /dev/ttyUSB0)
+
+    * Compile and upload
+
+Observe the verbose output in the Arduino IDE console during compilation and upload. Look for the serial port (e.g., /dev/ttyUSB0) and keep the IDE open for now.
+
+*************************************************************************************************************************************************************************************************************
+
+Step 2: Confirm Partition Scheme for Selected Board
+---------------------------------------------------
+
+First need to confirm which partition scheme is being used by your selected board.
+
+Method A: Inspect boards.txt (Recommended)
+------------------------------------------
+
+This file explicitly defines the partition scheme for each board (you can use terminal or file explorer UI, Here explaining terminal method)
+
+    * Open your terminal.
+
+    * Navigate to your ESP32 core installation directory:
+
+    * cd ~/.arduino15/packages/esp32/hardware/esp32/3.2.1/
+      # IMPORTANT: Adjust '3.2.1' if your ESP32 core version is different.
+
+    * Open boards.txt with a text editor: (terminal command: gedit boards.txt &)
+
+    * Find your board's definition. (My case: doitESP32devkitV1)
+
+    * Look for the build.partitions line. This line specifies the .csv file used for the default partition scheme.
+
+        Example: esp32.menu.PartitionScheme.default.build.partitions=default.csv
+        This confirms that default.csv is being used for the default partition scheme.
+
+Method B: Analyze Verbose Upload Output (or if you are enabled the full debug options from tools option in Arduino IDE, it will show on serial monitor after successfull upload of sketch)
+---------------------------------------
+
+The verbose output during sketch upload can also reveal the partition table used.
+
+    * In Arduino IDE 2.3.6, upload your sketch again (from Step 1).
+
+    * Review the verbose output in the black console area.
+
+    * Search for partition or partition_table.bin. You might see a line similar to this (though paths and exact filenames can vary):
+
+        ...write_flash 0x8000 /home/thepasswordisiitdh123/.arduino15/packages/esp32/hardware/esp32/3.2.1/tools/partitions/default_partition_table.bin
+
+        This indicates that default_partition_table.bin (generated from default.csv) is being flashed.
+*************************************************************************************************************************************************************************************************************
+
+Step 3: Identify LittleFS Partition Details from CSV
+----------------------------------------------------
+
+Now that you've confirmed the .csv file (likely default.csv), let's get the exact LittleFS partition details. (explaining terminal method, you can use file explorer UI)
+
+    * Open your terminal.
+
+    * Navigate to your ESP32 core's partitions directory:
+
+      cd ~/.arduino15/packages/esp32/hardware/esp32/3.2.1/tools/partitions/
+      # IMPORTANT: Adjust '3.2.1' if your ESP32 core version is different.
+
+    * Open the identified .csv file (e.g., default.csv) with a text editor (terminal command: gedit default.csv & ) (change file name if required)
+    
+    * Locate the spiffs data partition. Note its Offset (flash address) and Size.
+
+        From your previous output, this is: (My case)
+
+            Offset (FLASH_ADDRESS): 0x290000
+
+            Size (FILESYSTEM_SIZE): 0x160000
+
+        These values will be used in subsequent commands.
+*************************************************************************************************************************************************************************************************************
+
+Step 4: Install/Locate Necessary Command-Line Tools
+---------------------------------------------------
+Now we need to make a file system image for uploading our required files to esp32 flash (spiffs)
+"esptool.py" is using as the flasher and the "mklittlefs" using as the image file maker  (both are available in the espcore my case:~/.arduino15/packages/esp32/tools)
+
+For using these tools we need some basic python tools, the terminal commands are given below,
+
+    * Install python3-pip (if not already installed):
+
+    sudo apt update
+    sudo apt install python3-pip
+
+    * Install esptool:
+
+    pip install esptool
+    
+    * esptool available from internet using the above command or you can use the one present in espcore folder using the given method which we are going to use for mklittlefs.
+      mklittlefs not able to download from internet
+
+    * Locate mklittlefs: This tool is usually bundled with the ESP32 Arduino core.
+
+      cd ~/.arduino15/packages/esp32/tools/mklittlefs/3.0.0-gnu12-dc7f933/
+        # Replace '3.0.0-gnu12-dc7f933' with your actual version
+
+    * Note the full path to mklittlefs (e.g., ~/.arduino15/packages/esp32/tools/mklittlefs/3.0.0-gnu12-dc7f933/mklittlefs). You'll use this path in the next step.
+
+    * (Optional for convenience): Add this path to your system's PATH environment variable in ~/.bashrc to run mklittlefs directly. Terminal command given below, or you can open the file and add the path  
+      manually
+
+      echo 'export PATH="$PATH:/home/thepasswordisiitdh123/.arduino15/packages/esp32/tools/mklittlefs/3.0.0-gnu12-dc7f933/"' >> ~/.bashrc
+      source ~/.bashrc
+*************************************************************************************************************************************************************************************************************
+
+Step 5: Prepare Your Data Files
+-------------------------------
+
+Create a data folder inside your sketch directory and place your files there.
+
+    * Navigate to your sketch directory:
+
+      cd ~/Desktop//My_projects/ESP32-littleFS/
+
+    * Create the data subfolder and create some files (my case: txt files), you can you terminal also - commands given below
+
+    mkdir -p data
+    echo "This is the first line of text." > data/file1.txt
+    echo "Second file content here." > data/file2.txt
+    echo "A third file for LittleFS." > data/file3.txt
+
+    * Your sketch folder should now look like:
+
+    ESP32-littleFS/
+    ├── ESP32-littleFS.ino
+    └── data/
+        ├── file1.txt
+        ├── file2.txt
+        └── file3.txt
+*************************************************************************************************************************************************************************************************************
+
+Step 6: Generate the LittleFS Image (.bin file)
+-----------------------------------------------
+
+Use mklittlefs to create the flashable image from your data folder.
+
+    * Ensure you are in your sketch directory:
+
+      cd ~/Desktop/My_projects/ESP32-littleFS/
+
+    * Run the mklittlefs commands in terminal:
+
+    # If you added mklittlefs to PATH in step 4:
+    mklittlefs -c data -s 0x160000 -p 0x100 littlefs.bin
+
+    # OR, if not in PATH, use the full path:
+    # ~/.arduino15/packages/esp32/tools/mklittlefs/3.0.1/mklittlefs -c data -s 0x160000 -p 0x100 littlefs.bin
+
+       Note: 0x160000 is the FILESYSTEM_SIZE from Step 3.
+       
+littlefs.bin will be created in your current sketch directory.
+*************************************************************************************************************************************************************************************************************
+
+Step 7: Flash the LittleFS Image to ESP32
+-----------------------------------------
+
+Use esptool.py to upload the generated .bin file to the ESP32's flash memory.
+
+    * Close the Serial Monitor in Arduino IDE.
+
+    * Identify your ESP32's serial port (e.g., /dev/ttyUSB0 from Step 1).
+
+    * Run the esptool.py command:
+
+      esptool.py --chip esp32 --port /dev/ttyUSB0 write_flash 0x290000 littlefs.bin
+
+        Note: Replace /dev/ttyUSB0 with your actual serial port.
+
+              0x290000 is the FLASH_ADDRESS (Offset) from Step 3.
+
+    * When esptool.py shows "Connecting...", press and hold the "BOOT" button on your ESP32 board. Release it once the flashing percentage starts to appear.
+*************************************************************************************************************************************************************************************************************
+
+Step 8: Verify LittleFS Data on ESP32
+-------------------------------------
+
+Finally, upload your sketch (if note done previously) and check the Serial Monitor to confirm the files are present.
+
+    * Open the Serial Monitor (Tools > Serial Monitor).
+
+    * Set the baud rate to 115200 (or set yours).
+    
+    * Restart the board by pressing the onboard reset button
+
+You should now see the output from your sketch, listing the file1.txt, file2.txt, and file3.txt that you uploaded via the command line!
