@@ -1,0 +1,40 @@
+------------------------------------------
+INTERNAL Memory Info:
+------------------------------------------
+  Total Size        :   335176 B ( 327.3 KB)
+  Free Bytes        :   293532 B ( 286.7 KB)
+  Allocated Bytes   :    34396 B (  33.6 KB)
+  Minimum Free Bytes:   287736 B ( 281.0 KB)
+  Largest Free Block:   110580 B ( 108.0 KB)
+------------------------------------------
+Flash Info:
+------------------------------------------
+  Chip Size         :  4194304 B (4 MB)
+  Block Size        :    65536 B (  64.0 KB)
+  Sector Size       :     4096 B (   4.0 KB)
+  Page Size         :      256 B (   0.2 KB)
+  Bus Speed         : 80 MHz
+  Bus Mode          : DIO
+------------------------------------------
+Partitions Info:
+------------------------------------------
+                nvs : addr: 0x00009000, size:    20.0 KB, type: DATA, subtype: NVS
+            otadata : addr: 0x0000E000, size:     8.0 KB, type: DATA, subtype: OTA
+               app0 : addr: 0x00010000, size:  1280.0 KB, type:  APP, subtype: OTA_0
+               app1 : addr: 0x00150000, size:  1280.0 KB, type:  APP, subtype: OTA_1
+             spiffs : addr: 0x00290000, size:  1408.0 KB, type: DATA, subtype: SPIFFS
+           coredump : addr: 0x003F0000, size:    64.0 KB, type: DATA, subtype: COREDUMP
+------------------------------------------
+Software Info:
+------------------------------------------
+  Compile Date/Time : Jul 23 2025 16:34:22
+  Compile Host OS   : linux
+  ESP-IDF Version   : v5.4.2-25-g858a988d6e
+  Arduino Version   : 3.2.1
+------------------------------------------
+Board Info:
+------------------------------------------
+  Arduino Board     : ESP32_DEV
+  Arduino Variant   : doitESP32devkitV1
+  Arduino FQBN      : esp32:esp32:esp32doit-devkit-v1:UploadSpeed=921600,FlashFreq=80,DebugLevel=debug,EraseFlash=none
+============ Before Setup End ============

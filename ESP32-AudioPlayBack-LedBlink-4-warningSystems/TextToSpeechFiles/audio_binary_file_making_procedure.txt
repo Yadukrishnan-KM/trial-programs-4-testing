@@ -1,0 +1,37 @@
+Details about making the .hex audio files for the Audio Warning message
+-----------------------------------------------------------------------
+-----------------------------------------------------------------------
+Date: 26/07/2025
+Author: Yadukrishnan K M
+OS: Linux Ubundu 22.04.05 LTS
+VS Studio: 1.102.2
+Audacity: 2.4.2
+@brief: Steps to make a .h audio file for ESP32 from text
+-----------------------------------------------------------------------
+
+1. Convert text to speech (Web based)
+-------------------------
+* Open website and use given options. "https://ttsmp3.com/ai"
+* use AI voice and instruction is "hard"
+* use onyx(male, deeper voice) option
+* download all text into .mp3 files
+
+2. convert .mp3 to RAW data file (Audacity desktop app)
+--------------------------------
+* Intstall and open Audacity app in PC and open the .mp3 file
+* Choose the section of voice you need to convert. Unwanted silent area remove.
+* You can do some effects to the voice if required.
+* Change project rate to 16kHz (option in bottom left).
+* File-->Export-->Export Audio
+* Choose Header: RAW headerless and Encoder: Usigned 8bit PCM (because esp32 DAC is 8bit)
+* Save and do for all .mp3 files.
+
+3. Convert .raw to .h file (Using the given code in VS studio)
+--------------------------
+* Open the .c file in VS studio and change the file names inside the code
+* Run using compilar: C/C++ gcc build and debug active file
+* After successful run the .h file will generate on the same folder where the .c file present
+* You are done.
+
+-----------------------------------------------------------------------
+-----------------------------------------------------------------------
